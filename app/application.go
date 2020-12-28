@@ -1,6 +1,10 @@
 package app
 
-import "github.com/gin-gonic/gin"
+import (
+	"log"
+
+	"github.com/gin-gonic/gin"
+)
 
 var (
 	router = gin.Default()
@@ -8,6 +12,9 @@ var (
 
 // StartApp start the application
 func StartApp() {
+	gin.ForceConsoleColor()
 	MapURL()
-	router.Run(":8080")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatalln(err)
+	}
 }

@@ -54,3 +54,15 @@ func FindUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 
 }
+
+// PopulateUserTable
+func PopulateUserTable(c *gin.Context) {
+	err := services.PopulateUserTable()
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "Db populated",
+	})
+}

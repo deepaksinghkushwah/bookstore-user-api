@@ -8,10 +8,11 @@ import (
 
 // User struct
 type User struct {
-	ID        int64  `json:"id"`
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	ID          int64  `json:"id"`
+	Email       string `json:"email"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	DateCreated string `json:"date_created"`
 }
 
 // Validate user

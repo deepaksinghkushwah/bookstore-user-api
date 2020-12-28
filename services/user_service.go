@@ -32,11 +32,20 @@ func FindUser(userID int64) (*users.User, *errors.RestErr) {
 }
 
 // AllUsers return all users
-func AllUsers() (*map[int64]*users.User, *errors.RestErr) {
+func AllUsers() (*[]users.User, *errors.RestErr) {
 	results, err := users.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	return &results, nil
+	return results, nil
+}
+
+// PopulateUserTable to topup user table
+func PopulateUserTable() *errors.RestErr {
+	err := users.PopulateUserTable()
+	if err != nil {
+		return err
+	}
+	return nil
 }
