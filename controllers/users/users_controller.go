@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/deepaksinghkushwah/bookstore/bookstore-user-api/domain/users"
-	"github.com/deepaksinghkushwah/bookstore/bookstore-user-api/services"
-	"github.com/deepaksinghkushwah/bookstore/bookstore-user-api/utils/errors"
+	"bookstore/bookstore-user-api/domain/users"
+	"bookstore/bookstore-user-api/services"
+	"bookstore/bookstore-user-api/utils/errors"
+
 	"github.com/gin-gonic/gin"
 )
 

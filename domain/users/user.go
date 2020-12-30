@@ -3,9 +3,9 @@ package users
 import (
 	"strconv"
 
-	"github.com/deepaksinghkushwah/bookstore/bookstore-user-api/datasource/mysql/bookstore"
-	"github.com/deepaksinghkushwah/bookstore/bookstore-user-api/utils/dates"
-	"github.com/deepaksinghkushwah/bookstore/bookstore-user-api/utils/errors"
+	"bookstore/bookstore-user-api/datasource/mysql/bookstore"
+	"bookstore/bookstore-user-api/utils/dates"
+	"bookstore/bookstore-user-api/utils/errors"
 )
 
 var (
