@@ -1,19 +1,18 @@
 package users
 
 import (
+	"bookstore/bookstore-user-api/domain/users"
+	"bookstore/bookstore-user-api/services/userservice"
+	"bookstore/bookstore-user-api/utils/errors"
 	"net/http"
 	"strconv"
-
-	"bookstore/bookstore-user-api/domain/users"
-	"bookstore/bookstore-user-api/services"
-	"bookstore/bookstore-user-api/utils/errors"
 
 	"github.com/gin-gonic/gin"
 )
 
 // GetUsers return list of users
 func GetUsers(c *gin.Context) {
-	users, err := services.AllUsers()
+	users, err := userservice.AllUsers()
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
@@ -30,7 +29,7 @@ func CreateUser(c *gin.Context) {
 		c.JSON(restErr.Status, restErr)
 		return
 	}
-	result, saveErr := services.CreateUser(&user)
+	result, saveErr := userservice.CreateUser(&user)
 	if saveErr != nil {
 		c.JSON(saveErr.Status, saveErr)
 		return
@@ -47,7 +46,7 @@ func FindUser(c *gin.Context) {
 		return
 	}
 
-	user, err := services.FindUser(userID)
+	user, err := userservice.FindUser(userID)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
@@ -56,9 +55,9 @@ func FindUser(c *gin.Context) {
 
 }
 
-// PopulateUserTable
+// PopulateUserTable db
 func PopulateUserTable(c *gin.Context) {
-	err := services.PopulateUserTable()
+	err := userservice.PopulateUserTable()
 	if err != nil {
 		c.JSON(err.Status, err)
 		return

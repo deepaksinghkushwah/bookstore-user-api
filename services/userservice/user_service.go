@@ -1,4 +1,4 @@
-package services
+package userservice
 
 import (
 	"bookstore/bookstore-user-api/domain/users"
