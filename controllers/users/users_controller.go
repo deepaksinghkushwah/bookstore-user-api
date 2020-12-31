@@ -66,3 +66,24 @@ func PopulateUserTable(c *gin.Context) {
 		"msg": "Db populated",
 	})
 }
+
+// UpdateUser controllers
+func UpdateUser(c *gin.Context) {
+	var user users.User
+	if err := c.ShouldBind(&user); err != nil {
+		c.JSON(http.StatusBadGateway, errors.NewBadRequestError("Invalid user id"))
+		return
+	}
+	err := userservice.UpdateUser(&user)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user":   user,
+		"status": 1,
+		"msg":    "User updated",
+	})
+
+}

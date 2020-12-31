@@ -49,3 +49,12 @@ func PopulateUserTable() *errors.RestErr {
 	}
 	return nil
 }
+
+// UpdateUser service
+func UpdateUser(user *users.User) *errors.RestErr {
+	err := user.UpdateUser()
+	if err != nil {
+		return err
+	}
+	return nil
+}

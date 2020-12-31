@@ -14,6 +14,7 @@ var (
 
 const (
 	queryInsertUser = "INSERT INTO `users` (first_name, last_name, email, date_created) VALUES(?, ?, ?, ?)"
+	queryUpdateUser = "UPDATE `users` SET first_name = ?, last_name = ?, email = ?, date_created = ? WHERE id = ?"
 )
 
 // Save to save user
@@ -117,4 +118,31 @@ func PopulateUserTable() *errors.RestErr {
 	}
 	return nil
 
+}
+
+// UpdateUser to update user
+func (user *User) UpdateUser() *errors.RestErr {
+	err := user.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = user.Get()
+	if err != nil {
+		return err
+	}
+
+	stmt, prepErr := bookstore.BookStoreDBLink.Prepare(queryUpdateUser)
+	if prepErr != nil {
+		return errors.NewInternalServerError(prepErr.Error())
+	}
+
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated, user.ID)
+	if updateErr != nil {
+		return errors.NewInternalServerError(updateErr.Error())
+	}
+
+	return nil
 }
