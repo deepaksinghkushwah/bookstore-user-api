@@ -10,6 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func getUserID(userIDParam string) (int64, *errors.RestErr) {
+	userID, userErr := strconv.ParseInt(userIDParam, 10, 64)
+	if userErr != nil {
+		return 0, errors.NewBadRequestError("Invalid user id")
+	}
+	return userID, nil
+}
+
 // GetUsers return list of users
 func GetUsers(c *gin.Context) {
 	users, err := userservice.AllUsers()
@@ -39,10 +47,9 @@ func CreateUser(c *gin.Context) {
 
 // FindUser search for user with id
 func FindUser(c *gin.Context) {
-	userID, userErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	userID, userErr := getUserID(c.Param("id"))
 	if userErr != nil {
-		err := errors.NewBadRequestError("Invalid user id")
-		c.JSON(err.Status, err)
+		c.JSON(userErr.Status, userErr)
 		return
 	}
 
@@ -69,21 +76,50 @@ func PopulateUserTable(c *gin.Context) {
 
 // UpdateUser controllers
 func UpdateUser(c *gin.Context) {
+	userID, userErr := getUserID(c.Param("id"))
+	if userErr != nil {
+		c.JSON(userErr.Status, userErr)
+		return
+	}
+
 	var user users.User
 	if err := c.ShouldBind(&user); err != nil {
 		c.JSON(http.StatusBadGateway, errors.NewBadRequestError("Invalid user id"))
 		return
 	}
-	err := userservice.UpdateUser(&user)
+	user.ID = userID
+	isPartial := c.Request.Method == http.MethodPatch
+	current, err := userservice.UpdateUser(isPartial, &user)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":   user,
 		"status": 1,
 		"msg":    "User updated",
+		"user":   current,
+	})
+
+}
+
+// DeleteUser to delete user
+func DeleteUser(c *gin.Context) {
+	userID, userErr := getUserID(c.Param("id"))
+	if userErr != nil {
+		c.JSON(userErr.Status, userErr)
+		return
+	}
+
+	deleteErr := userservice.DeleteUser(userID)
+
+	if deleteErr != nil {
+		c.JSON(deleteErr.Status, deleteErr)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": 1,
+		"msg":    "User deleted",
 	})
 
 }

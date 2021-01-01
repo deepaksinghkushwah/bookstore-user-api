@@ -15,6 +15,7 @@ var (
 const (
 	queryInsertUser = "INSERT INTO `users` (first_name, last_name, email, date_created) VALUES(?, ?, ?, ?)"
 	queryUpdateUser = "UPDATE `users` SET first_name = ?, last_name = ?, email = ?, date_created = ? WHERE id = ?"
+	queryDeleteUser = "DELETE FROM `users` WHERE id = ?"
 )
 
 // Save to save user
@@ -106,7 +107,7 @@ func PopulateUserTable() *errors.RestErr {
 	}
 	defer stmt.Close()
 
-	for i := 101; i <= 1000; i++ {
+	for i := 1; i <= 1000; i++ {
 		var firstName = "Test"
 		var lastName = strconv.Itoa(i)
 		var email = firstName + lastName + "@localhost.com"
@@ -127,11 +128,6 @@ func (user *User) UpdateUser() *errors.RestErr {
 		return err
 	}
 
-	err = user.Get()
-	if err != nil {
-		return err
-	}
-
 	stmt, prepErr := bookstore.BookStoreDBLink.Prepare(queryUpdateUser)
 	if prepErr != nil {
 		return errors.NewInternalServerError(prepErr.Error())
@@ -145,4 +141,19 @@ func (user *User) UpdateUser() *errors.RestErr {
 	}
 
 	return nil
+}
+
+// DeleteUser to delete user
+func (user *User) DeleteUser() *errors.RestErr {
+	stmt, err := bookstore.BookStoreDBLink.Prepare(queryDeleteUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
+	}
+	defer stmt.Close()
+	_, deleteErr := stmt.Exec(user.ID)
+	if deleteErr != nil {
+		return errors.NewInternalServerError(deleteErr.Error())
+	}
+	return nil
+
 }

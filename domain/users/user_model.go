@@ -13,6 +13,8 @@ type User struct {
 	FirstName   string `json:"first_name"`
 	LastName    string `json:"last_name"`
 	DateCreated string `json:"date_created"`
+	Status      string `json:"status"`
+	Password    string `json:"-"`
 }
 
 // Validate user

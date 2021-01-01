@@ -51,10 +51,41 @@ func PopulateUserTable() *errors.RestErr {
 }
 
 // UpdateUser service
-func UpdateUser(user *users.User) *errors.RestErr {
-	err := user.UpdateUser()
+func UpdateUser(isPartial bool, user *users.User) (*users.User, *errors.RestErr) {
+	current, err := FindUser(user.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	if isPartial {
+		if user.FirstName == "" {
+			user.FirstName = current.FirstName
+		}
+
+		if user.LastName == "" {
+			user.LastName = current.LastName
+		}
+
+		if user.Email == "" {
+			user.Email = current.Email
+		}
+
+		if user.DateCreated == "" {
+			user.DateCreated = current.DateCreated
+		}
+
+	}
+	err = user.UpdateUser()
+
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// DeleteUser to delete user
+func DeleteUser(userID int64) *errors.RestErr {
+	user := &users.User{ID: userID}
+	return user.DeleteUser()
+
 }
