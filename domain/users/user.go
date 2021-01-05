@@ -4,8 +4,10 @@ import (
 	"strconv"
 
 	"bookstore/bookstore-user-api/datasource/mysql/bookstore"
+	"bookstore/bookstore-user-api/utils/cryptoutils"
 	"bookstore/bookstore-user-api/utils/dates"
 	"bookstore/bookstore-user-api/utils/errors"
+	"bookstore/bookstore-user-api/utils/loggers"
 )
 
 var (
@@ -13,9 +15,12 @@ var (
 )
 
 const (
-	queryInsertUser = "INSERT INTO `users` (first_name, last_name, email, date_created) VALUES(?, ?, ?, ?)"
-	queryUpdateUser = "UPDATE `users` SET first_name = ?, last_name = ?, email = ?, date_created = ? WHERE id = ?"
-	queryDeleteUser = "DELETE FROM `users` WHERE id = ?"
+	queryInsertUser       = "INSERT INTO `users` (first_name, last_name, email, date_created, password, status) VALUES(?, ?, ?, ?, ?, ?)"
+	queryUpdateUser       = "UPDATE `users` SET first_name = ?, last_name = ?, email = ?, date_created = ? WHERE id = ?"
+	queryDeleteUser       = "DELETE FROM `users` WHERE id = ?"
+	queryFindUserByStatus = "SELECT id, first_name, last_name, email, date_created, password, `status`  FROM `users` WHERE `status` = ?"
+	queryFindUserByID     = "SELECT id, first_name, last_name, email, date_created, password, `status`  FROM `users` WHERE `id` = ?"
+	queryFindAllUsers     = "SELECT id, first_name, last_name, email, date_created, password, `status`  FROM `users`"
 )
 
 // Save to save user
@@ -28,11 +33,12 @@ func (user *User) Save() *errors.RestErr {
 		return errors.NewInternalServerError(err.Error())
 	}
 	defer stmt.Close()
-	user.DateCreated = dates.GetNowString()
+	user.DateCreated = dates.GetNowDBString()
+	user.Password = cryptoutils.GetMD5(user.Password)
 
-	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
+	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated, user.Password, user.Status)
 	if err != nil {
-		return errors.NewInternalServerError("Error when trying to save user")
+		return errors.NewInternalServerError(err.Error())
 	}
 	userID, err := insertResult.LastInsertId()
 	if err != nil {
@@ -54,24 +60,26 @@ func (user *User) Get() *errors.RestErr {
 	if err := bookstore.BookStoreDBLink.Ping(); err != nil {
 		return errors.NewInternalServerError(err.Error())
 	}
-	stmt, err := bookstore.BookStoreDBLink.Prepare("SELECT id, first_name, last_name, email, date_created FROM `users` WHERE id = ?")
+	stmt, err := bookstore.BookStoreDBLink.Prepare(queryFindUserByID)
 	if err != nil {
-		return errors.NewInternalServerError(err.Error())
+		loggers.Error("error when trying to prepare user statment", err)
+		return errors.NewInternalServerError("Database error")
 	}
 
 	defer stmt.Close()
 
-	err = stmt.QueryRow(user.ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated)
+	err = stmt.QueryRow(user.ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated, &user.Password, &user.Status)
 	if err != nil {
-		return errors.NewInternalServerError(err.Error())
+		loggers.Error("error when trying to execute user statment", err)
+		return errors.NewInternalServerError("Database error")
 	}
 	return nil
 }
 
 // GetAll return all users
-func GetAll() (*[]User, *errors.RestErr) {
+func GetAll() (Users, *errors.RestErr) {
 	var users []User
-	stmt, err := bookstore.BookStoreDBLink.Prepare("SELECT id, first_name, last_name, email, date_created FROM `users`")
+	stmt, err := bookstore.BookStoreDBLink.Prepare(queryFindAllUsers)
 	if err != nil {
 		return nil, errors.NewNotFoundError("No users found")
 	}
@@ -84,15 +92,16 @@ func GetAll() (*[]User, *errors.RestErr) {
 
 	for results.Next() {
 		var user User
-		err = results.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated)
+		err = results.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated, &user.Password, &user.Status)
 		if err != nil {
-			return nil, errors.NewInternalServerError(err.Error())
+			loggers.Error("error when trying to prepare user statment", err)
+			return nil, errors.NewInternalServerError("Database error")
 		}
 		users = append(users, user)
 	}
 
 	if len(users) > 0 {
-		return &users, nil
+		return users, nil
 	}
 
 	return nil, errors.NewNotFoundError("No user found")
@@ -103,7 +112,8 @@ func GetAll() (*[]User, *errors.RestErr) {
 func PopulateUserTable() *errors.RestErr {
 	stmt, err := bookstore.BookStoreDBLink.Prepare(queryInsertUser)
 	if err != nil {
-		return errors.NewInternalServerError(err.Error())
+		loggers.Error("error when trying to prepare table statment", err)
+		return errors.NewInternalServerError("Database error")
 	}
 	defer stmt.Close()
 
@@ -111,8 +121,10 @@ func PopulateUserTable() *errors.RestErr {
 		var firstName = "Test"
 		var lastName = strconv.Itoa(i)
 		var email = firstName + lastName + "@localhost.com"
-		var dateCreated = dates.GetNowString()
-		_, err := stmt.Exec(firstName, lastName, email, dateCreated)
+		var dateCreated = dates.GetNowDBString()
+		var password = cryptoutils.GetMD5("123456")
+		var status = 1
+		_, err := stmt.Exec(firstName, lastName, email, dateCreated, password, status)
 		if err != nil {
 			return errors.NewInternalServerError("Error when trying to save user")
 		}
@@ -130,14 +142,16 @@ func (user *User) UpdateUser() *errors.RestErr {
 
 	stmt, prepErr := bookstore.BookStoreDBLink.Prepare(queryUpdateUser)
 	if prepErr != nil {
-		return errors.NewInternalServerError(prepErr.Error())
+		loggers.Error("error when trying to prepare user statment", prepErr)
+		return errors.NewInternalServerError("Database error")
 	}
 
 	defer stmt.Close()
 
 	_, updateErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated, user.ID)
 	if updateErr != nil {
-		return errors.NewInternalServerError(updateErr.Error())
+		loggers.Error("error when trying to prepare user statment", updateErr)
+		return errors.NewInternalServerError("Update error")
 	}
 
 	return nil
@@ -147,13 +161,45 @@ func (user *User) UpdateUser() *errors.RestErr {
 func (user *User) DeleteUser() *errors.RestErr {
 	stmt, err := bookstore.BookStoreDBLink.Prepare(queryDeleteUser)
 	if err != nil {
-		return errors.NewInternalServerError(err.Error())
+		loggers.Error("error when trying to prepare user statment", err)
+		return errors.NewInternalServerError("Delete error")
 	}
 	defer stmt.Close()
 	_, deleteErr := stmt.Exec(user.ID)
 	if deleteErr != nil {
-		return errors.NewInternalServerError(deleteErr.Error())
+		loggers.Error("error when trying to prepare user statment", deleteErr)
+		return errors.NewInternalServerError("Delete error")
 	}
 	return nil
 
+}
+
+// SearchUsers to find user with params
+func (user *User) SearchUsers(status string) (Users, *errors.RestErr) {
+	stmt, err := bookstore.BookStoreDBLink.Prepare(queryFindUserByStatus)
+	if err != nil {
+		loggers.Error("error when trying to prepare user statment", err)
+		return nil, errors.NewInternalServerError("Datebase error")
+
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(status)
+	if err != nil {
+		loggers.Error("error when trying to prepare user statment", err)
+		return nil, errors.NewInternalServerError("Update error")
+	}
+
+	defer rows.Close()
+	results := make([]User, 0)
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated, &user.Password, &user.Status); err != nil {
+			loggers.Error("error when trying to scan user", err)
+			return nil, errors.NewInternalServerError("Update error")
+
+		}
+		results = append(results, user)
+	}
+	return results, nil
 }
