@@ -17,22 +17,6 @@ type User struct {
 	Password    string `json:"password"`
 }
 
-// PublicUser for external api use
-type PublicUser struct {
-	ID          int64  `json:"id"`
-	DateCreated string `json:"date_created"`
-	Status      string `json:"status"`
-}
-
-// PrivateUser for internal use
-type PrivateUser struct {
-	ID          int64  `json:"id"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	DateCreated string `json:"date_created"`
-	Status      string `json:"status"`
-}
-
 // Validate user
 func (p *User) Validate() *errors.RestErr {
 	p.Email = strings.TrimSpace(strings.ToLower(p.Email))

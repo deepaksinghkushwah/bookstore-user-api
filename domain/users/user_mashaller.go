@@ -2,6 +2,22 @@ package users
 
 import "encoding/json"
 
+// PublicUser for external api use
+type PublicUser struct {
+	ID          int64  `json:"id"`
+	DateCreated string `json:"date_created"`
+	Status      string `json:"status"`
+}
+
+// PrivateUser for internal use
+type PrivateUser struct {
+	ID          int64  `json:"id"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	DateCreated string `json:"date_created"`
+	Status      string `json:"status"`
+}
+
 // Marshal return user based on request type
 func (p *User) Marshal(isPublic bool) interface{} {
 	if isPublic == true {
