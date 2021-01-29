@@ -1,8 +1,8 @@
 package app
 
 import (
-	"bookstore/bookstore-user-api/controllers/ping"
-	"bookstore/bookstore-user-api/controllers/users"
+	"github.com/deepaksinghkushwah/bookstore-user-api/controllers/ping"
+	"github.com/deepaksinghkushwah/bookstore-user-api/controllers/users"
 )
 
 // MapURL map urls

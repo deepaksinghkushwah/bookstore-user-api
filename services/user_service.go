@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bookstore/bookstore-user-api/domain/users"
-	"bookstore/bookstore-user-api/utils/errors"
+	"github.com/deepaksinghkushwah/bookstore-user-api/domain/users"
+	errors "github.com/deepaksinghkushwah/bookstore-utils-api/rest_errors"
 )
 
 var (

@@ -1,8 +1,9 @@
 package app
 
 import (
-	"bookstore/bookstore-user-api/utils/loggers"
 	"log"
+
+	loggers "github.com/deepaksinghkushwah/bookstore-utils-api/loggers"
 
 	"github.com/gin-gonic/gin"
 )

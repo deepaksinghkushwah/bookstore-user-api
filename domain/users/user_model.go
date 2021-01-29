@@ -3,7 +3,7 @@ package users
 import (
 	"strings"
 
-	"bookstore/bookstore-user-api/utils/errors"
+	errors "github.com/deepaksinghkushwah/bookstore-utils-api/rest_errors"
 )
 
 // User struct

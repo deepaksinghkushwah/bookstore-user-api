@@ -1,11 +1,12 @@
 package users
 
 import (
-	"bookstore/bookstore-user-api/domain/users"
-	"bookstore/bookstore-user-api/services"
-	"bookstore/bookstore-user-api/utils/errors"
 	"net/http"
 	"strconv"
+
+	"github.com/deepaksinghkushwah/bookstore-user-api/domain/users"
+	"github.com/deepaksinghkushwah/bookstore-user-api/services"
+	errors "github.com/deepaksinghkushwah/bookstore-utils-api/rest_errors"
 
 	"github.com/gin-gonic/gin"
 )
